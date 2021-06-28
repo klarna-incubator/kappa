@@ -15,7 +15,7 @@
 %%%
 %%% @doc Functions to handle changes in kappa.edges cache files of 2 OTP releases
 %%%
-%%% They were mainly usefull before Erlang introduced `code:atomic_load/1`.
+%%% They were mainly usefull before Erlang introduced code:atomic_load/1.
 -module(upgrade_analysis).
 
 %% API
