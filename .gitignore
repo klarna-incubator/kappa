@@ -1,0 +1,7 @@
+_build
+rebar3
+priv/
+doc/
+*.idea/*
+*.iml
+erlang_ls.config

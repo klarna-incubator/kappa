@@ -1,0 +1,19 @@
+{application, kappa,
+   [ {description, "Code analysis and owership toolbox"}
+   , {vsn, "1.0"}
+   , {registered, [kappa_server]}
+   , {mod, {kappa_app, []}}
+   , {env, [{ignore, [app_name, {behaviour, bo3}]},
+            {error_logger, fun logger:error/2},
+
+            {architecture_file, "architecture.eterm"},
+            {ownership_file, "team.eterm"},
+            {db_ownership_file, "tables.eterm"},
+            {record_field_use_file, "record_field_use.eterm"},
+            {approved_api_violations_file, "approved_api_violations.eterm"},
+            {approved_layer_violations_file, "approved_layer_violations.eterm"},
+
+            {edges_cache_file, "kappa.edges"}
+           ]}
+   , {applications, [kernel, stdlib]}
+   ]}.

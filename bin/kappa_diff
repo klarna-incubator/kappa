@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+# This is a script to automatically check for kappa violations in current
+# branch and on master/staging branch
+# It will output a diff and also the number of kappa violations in current
+# branch and on master/staging branch
+
+# Saveguard to not use unbound vars
+set -u
+# Prevent error snowballing (make sure to return true from successful operations)
+set -e
+
+HOME_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+function _usage () {
+    echo
+    echo "Usage: $(basename $0) [master|staging]"
+    echo
+    echo "If you don't specify a reference branch, it will be automatically"
+    echo "detected based on whether staging is contanied by your current HEAD"
+    echo
+    exit 1
+}
+
+function _detect_reference_branch() {
+    if [ -z "$(git branch -r --merged | grep /staging$)" ]; then
+	_RETURN="master"
+    else
+	_RETURN="staging"
+    fi
+}
+
+function _parse_input_arg() {
+    case "$1" in
+	"master"|"staging")
+	    _RETURN="$1"
+	    ;;
+	*)
+	    _usage; exit 1
+	    ;;
+    esac
+}
+
+
+# Parse input arguments
+case "$#" in
+    "0")
+	_detect_reference_branch
+	BASE_BRANCH=$_RETURN
+	;;
+    "1")
+	_parse_input_arg $1
+	BASE_BRANCH=$_RETURN
+	;;
+    *)
+	_usage; exit 1
+esac
+
+echo "*** Using $BASE_BRANCH as reference"
+
+# Checking for the kappa_check script
+KAPPA="$HOME_DIR/kappa_check"
+if ! [ -e "$KAPPA" ]; then
+    echo "Unable to find $KAPPA. Unless you deleted it, this is a bug."
+    exit 1
+fi
+
+KAPPA_BASE_API=`mktemp /tmp/kappa-base-api.XXXXX`
+KAPPA_BASE_LAYER=`mktemp /tmp/kappa-base-layer.XXXXX`
+
+KAPPA_CURRENT_API=`mktemp /tmp/kappa-current-api.XXXXX`
+KAPPA_CURRENT_LAYER=`mktemp /tmp/kappa-current-layer.XXXXX`
+
+KAPPA_DIFF_API=`mktemp /tmp/kappa-diff-api.XXXXX`
+KAPPA_DIFF_LAYER=`mktemp /tmp/kappa-diff-layer.XXXXX`
+KAPPA_LINK_BASE="http://jenkins.internal.machines:8080/jenkins/view/hive/job/kappa-check-${BASE_BRANCH}-all/lastSuccessfulBuild/artifact/build_artifacts"
+KAPPA_LINK_API="${KAPPA_LINK_BASE}/kappa_api.txt"
+KAPPA_LINK_LAYER="${KAPPA_LINK_BASE}/kappa_layer.txt"
+
+echo "*** Fetching kappa violations for ${BASE_BRANCH}"
+curl -s "${KAPPA_LINK_API}" | sort > "${KAPPA_BASE_API}" || true
+curl -s "${KAPPA_LINK_LAYER}" | sort > "${KAPPA_BASE_LAYER}" || true
+if [ ! -s "${KAPPA_BASE_API}" ]; then
+    echo "Not possible to download kappa violations for ${BASE_BRANCH} from: ${KAPPA_LINK_API}"
+    exit 1
+fi
+echo "*** Running kappa api check on current branch"
+$KAPPA api | sort > "${KAPPA_CURRENT_API}"
+echo "*** Running kappa layers check on current branch"
+$KAPPA layers | sort > "${KAPPA_CURRENT_LAYER}"
+echo "=== Kappa Check Diff ==================================================="
+# remove hashes from diff for readability
+diff "${KAPPA_BASE_API}" "${KAPPA_CURRENT_API}" | grep -e "^[\>\<]" > "${KAPPA_DIFF_API}" && true
+diff "${KAPPA_BASE_LAYER}" "${KAPPA_CURRENT_LAYER}" | grep -e "^[\>\<]" > "${KAPPA_DIFF_LAYER}" && true
+BASE_VIOLATIONS_API=`cat ${KAPPA_BASE_API} | wc -l`
+BASE_VIOLATIONS_LAYER=`cat ${KAPPA_BASE_LAYER} | wc -l`
+CURRENT_VIOLATIONS_API=`cat ${KAPPA_CURRENT_API} | wc -l`
+CURRENT_VIOLATIONS_LAYER=`cat ${KAPPA_CURRENT_LAYER} | wc -l`
+API_INCREASE=`echo "${CURRENT_VIOLATIONS_API} - ${BASE_VIOLATIONS_API}" | bc -l`
+LAYER_INCREASE=`echo "${CURRENT_VIOLATIONS_LAYER} - ${BASE_VIOLATIONS_LAYER}" | bc -l`
+echo "\`diff ${BASE_BRANCH} current\`:"
+echo "API:"
+cat "${KAPPA_DIFF_API}"
+echo "LAYER:"
+cat "${KAPPA_DIFF_LAYER}"
+echo "========================================================================"
+if [ "${API_INCREASE}" -le "0" ] && [ "${LAYER_INCREASE}" -le "0" ]; then
+    if [ "${API_INCREASE}" -lt "0" ] || [ "${LAYER_INCREASE}" -lt "0" ]; then
+        echo "Congrats, kappa violation count is decreased!"
+        echo "API net diff  : ${API_INCREASE}"
+        echo "Layer net diff: ${LAYER_INCREASE}"
+    fi
+    echo "NB! The check might work incorrectly if the branch doesn't contain the latest ${BASE_BRANCH}"
+    echo "STATUS: OK"
+else
+    if [ "${API_INCREASE}" -gt "0" ]; then
+        echo "Branch has more api violations than ${BASE_BRANCH} (net diff: ${API_INCREASE})"
+    fi
+    if [ "${LAYER_INCREASE}" -gt "0" ]; then
+        echo "Branch has more layer violations than ${BASE_BRANCH} (net diff: ${LAYER_INCREASE})"
+    fi
+    echo "NB! The check might work incorrectly if the branch doesn't contain the latest ${BASE_BRANCH}"
+    echo "STATUS: FAILED"
+    exit 1
+fi
