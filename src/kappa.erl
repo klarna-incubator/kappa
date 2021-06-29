@@ -17,6 +17,9 @@
 -module(kappa).
 
 %%%_* Exports ==========================================================
+
+-export([ main/1 ]).
+
 -export([ collect_architecture_info/1
         , get_architecture_info/1
         , get_assets/1
@@ -78,6 +81,11 @@
 -type db_ownership_info() :: {[any()], date_time()}.
 
 %%%_* Code =============================================================
+
+%% @doc Alias for kappa_check:main/1
+main(Args) ->
+  kappa_check:main(Args).
+
 %%%_* API --------------------------------------------------------------
 %% @doc Read the KAPPA architecture file and structure the content into layers,
 %% applications and apis.

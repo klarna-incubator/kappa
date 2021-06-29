@@ -15,5 +15,5 @@
 
             {edges_cache_file, "kappa.edges"}
            ]}
-   , {applications, [kernel, stdlib]}
+   , {applications, [kernel, stdlib, getopt]}
    ]}.
