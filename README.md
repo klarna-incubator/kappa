@@ -33,6 +33,43 @@ all?  if allowed, in which direction?)
 
 > :warning: Most of the checks rely on the presence of `debug_info` compiler option!
 
+## Get Started
+
+    rebar3 escriptize
+    _build/default/bin/kappa
+
+    Usage: kappa [<mode>] [-a [<apps>]] [-m [<mods>]] [-x [<exclusive>]]
+             [-f [<functions>]] [-v [<violations>]] [-r [<reverse>]]
+             [-c [<count>]] [-g [<graph>]] [-G [<graph_file>]]
+             [-p [<path>]] [-?] [name ...]
+
+    <mode>            api:     report non api call violations
+                      layers:  report layer violations
+                      all:     report api and layer violations
+                      summary: print a one line summary of all violations in
+                               the system. Options other than -p are ignored.
+                               The format is:
+                               <time> <non api calls> <layer violations> <sum> [default: mods]
+    -a, --apps        List applications violating invariants [default: false]
+    -m, --mods        List modules violating invariants [default: true]
+    -x, --exclusive   Only report violations where the module is a part of
+                          the analyzed set [default: false]
+    -f, --functions   Draw graph over functions.  Use carefully.
+                          Only works with -m [default: false]
+    -v, --violations  Show only violations in graph. [default: false]
+    -r, --reverse     Report callers to the mod/app rather than callees
+                      [default: false]
+    -c, --count       Report only the number of warnings [default: false]
+    -g, --graph       Store a graph centered around the mods/apps.
+                          Default file path is '/tmp/graph.svg' [default: false]
+    -G, --graph-file  Store a graph centered around the mods/apps at
+                      specified location. [default: undefined]
+    -p, --path        Analyze another system rather than the current.
+                          Default is current directory [default: Current Directory]
+    -?, --help        Show usage screen
+    names             List of applications or modules to check.
+                          Default is to check the whole system
+
 ## Configuration
 
 Kappa's configuration is loaded from 4 files:

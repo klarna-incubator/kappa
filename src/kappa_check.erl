@@ -161,7 +161,7 @@ multi(Offset, [Line | Lines]) ->
                     Lines).
 
 option_specs() ->
-  [ {mode,        undefined,undefined,{atom, mods},
+  [ {mode,        undefined,undefined,{atom, all},
      multi(["api:     report non api call violations",
             "layers:  report layer violations",
             "all:     report api and layer violations",
