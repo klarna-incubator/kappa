@@ -49,7 +49,7 @@ all?  if allowed, in which direction?)
                       summary: print a one line summary of all violations in
                                the system. Options other than -p are ignored.
                                The format is:
-                               <time> <non api calls> <layer violations> <sum> [default: mods]
+                               <time> <non api calls> <layer violations> <sum> [default: all]
     -a, --apps        List applications violating invariants [default: false]
     -m, --mods        List modules violating invariants [default: true]
     -x, --exclusive   Only report violations where the module is a part of
