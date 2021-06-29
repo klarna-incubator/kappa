@@ -1,5 +1,5 @@
-# Kappa
-> Keep a huge Erlang code base, developed by multiple teams, in a manageable state
+# Kappa (Klarna Application Analytics)
+> Keep a huge Erlang code base, developed by multiple teams, in a manageable state.
 
 [![Build Status][ci-image]][ci-url]
 [![License][license-image]][license-url]
@@ -7,24 +7,31 @@
 
 ## Features
 
-* Code and database table ownership. Kappa can tell you which team
-  owns this particular app / module / database table and how they can
-  be contacted (e.g. to send an alarm).
-* Application's API modules. Restrict inter-app calls to only a set of
-  API-modules. Calls from one app to other app's _private_ modules are
-  not allowed.
-* Restricted record fields usage. Direct access to records defined in
-  header files makes it hard to change the record's structure. Kappa
-  allows only a defined set of modules to access specific record's
-  fields directly.
-* Code layers. Divide your apps into multiple layers (e.g. external
-  interfaces and APIs / business logic layer / database level / system
-  utilities / test-only / external dependencies, etc.) and apply
-  restrictions on calls between applications that belong to different
-  layers (allowed at all?  if allowed, in which direction?)
+### Code and database table ownership
 
-Most of the checks rely on the presence of `debug_info` compiler
-option!
+Kappa can tell you which team owns this particular app / module /
+database table and how they can be contacted (e.g. to send an alarm).
+
+### Application API modules
+
+Restrict inter-app calls to only a set of API-modules. Calls from one
+app to other app's _private_ modules are not allowed.
+
+### Restricted record fields usage
+
+Direct access to records defined in header files makes it hard to
+change the record's structure. Kappa allows only a defined set of
+modules to access specific record's fields directly.
+
+### Code Layers
+
+Divide your apps into multiple layers (e.g. external interfaces and
+APIs / business logic layer / database level / system utilities /
+test-only / external dependencies, etc.) and apply restrictions on
+calls between applications that belong to different layers (allowed at
+all?  if allowed, in which direction?)
+
+> :warning: Most of the checks rely on the presence of `debug_info` compiler option!
 
 ## Configuration
 
